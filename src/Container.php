@@ -134,6 +134,7 @@ class Container implements ArrayAccess
         }
 
         $args = [];
+        $object = null;
         foreach ($constructParams as $p) {
             $parametrClass = $p->getClass();
             if ($parametrClass === null) {
@@ -141,13 +142,14 @@ class Container implements ArrayAccess
                 break;
             }
 
-            $parametrValue = $this->offsetGet($parametrClass);
+            $parametrClassName = $parametrClass->getName();
+            $parametrValue = $this->offsetGet($parametrClassName);
             if (is_null($parametrValue)) {
                 if ($p->isOptional()) {
                     $parametrValue = $p->getDefaultValue();
                 }
                 else {
-                    throw new ErrorException("Not found class '{$parametrClass}' as parametr for '{$className}'");
+                    throw new ErrorException("Not found class '{$parametrClassName}' as parametr for '{$className}'");
                 }
             }
 
