@@ -3,7 +3,6 @@
 namespace jugger\di;
 
 use ArrayAccess;
-use ErrorException;
 use ReflectionClass;
 
 /**
@@ -39,7 +38,7 @@ class Container implements ArrayAccess
     public function offsetSet($class, $config)
     {
         if (isset($this->cache[$class])) {
-            throw new ErrorException("Class '{$class}' is already cached");
+            throw new ClassAlreadyCached($class);
         }
         $this->data[$class] = $config;
     }
@@ -47,7 +46,7 @@ class Container implements ArrayAccess
     public function offsetUnset($class)
     {
         if (isset($this->cache[$class])) {
-            throw new ErrorException("Class '{$class}' is already cached");
+            throw new ClassAlreadyCached($class);
         }
         unset($this->data[$class]);
     }
@@ -152,7 +151,7 @@ class Container implements ArrayAccess
                 $parametrValue = $p->getDefaultValue();
             }
             else {
-                throw new ErrorException("Not found class '{$parametrClassName}' as parametr for '{$className}'");
+                throw new NotFoundClass("parametr class: '{$parametrClassName}', class: '{$className}'");
             }
 
             $args[] = $parametrValue;
