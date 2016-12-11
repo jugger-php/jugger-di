@@ -4,7 +4,7 @@ namespace jugger\di;
 
 use ErrorException;
 
-class ClassAlreadyCached extends ErrorException
+class ClassIsSet extends ErrorException
 {
 
 }
