@@ -70,6 +70,8 @@ class DiTest extends TestCase
         $test4 = Di::$c['Test4'];
         $test5 = Di::$c['Test5'];
 
+        $this->assertEquals(Di::$c['Test1'], Di::get('Test1'));
+
         $this->assertInstanceOf(Test1::class, $test1);
         $this->assertInstanceOf(Test2::class, $test2);
         $this->assertInstanceOf(Test3::class, $test3);
