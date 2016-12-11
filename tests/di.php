@@ -63,6 +63,20 @@ class DiTest extends TestCase
     /**
      * @depends testCreate
      */
+    public function testCreateClassFromArray()
+    {
+        $test3 = Di::$c->createObjectFromArray([
+            'class' => 'Test3',
+            't2' => null,
+        ]);
+
+        $this->assertInstanceOf(Test1::class, $test3->t1);
+        $this->assertNull($test3->t2);
+    }
+
+    /**
+     * @depends testCreate
+     */
     public function testGet()
     {
         $test1 = Di::$c['Test1'];
