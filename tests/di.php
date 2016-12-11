@@ -88,25 +88,39 @@ class DiTest extends TestCase
     }
 
     /**
+     * @depends testCreate
+     */
+    public function testReadOnly()
+    {
+        Di::$c['Test5'] = 'Test1';
+        try {
+            Di::$c['Test5'] = 'Test1';
+        }
+        catch (\Exception $e) {
+            $this->assertInstanceOf(ClassAlreadyCached::class, $e);
+        }
+    }
+
+    /**
      * @depends testGet
      */
     public function testUnset()
     {
-        Di::$c['Test5'] = 'Test1';
         Di::$c['Test6'] = 'Test1';
+        Di::$c['Test7'] = 'Test1';
 
         // get Test5
-        Di::$c['Test5'];
+        Di::$c['Test6'];
 
         // throw
         try {
-            unset(Di::$c['Test5']);
+            unset(Di::$c['Test6']);
         }
         catch (\Exception $e) {
             $this->assertInstanceOf(ClassAlreadyCached::class, $e);
         }
 
         // ok
-        unset(Di::$c['Test6']);
+        unset(Di::$c['Test7']);
     }
 }
