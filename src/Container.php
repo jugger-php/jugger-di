@@ -37,8 +37,8 @@ class Container implements ArrayAccess
 
     public function offsetSet($class, $config)
     {
-        if (isset($this->cache[$class])) {
-            throw new ClassAlreadyCached($class);
+        if (isset($this->data[$class])) {
+            throw new ClassIsSet($class);
         }
         $this->data[$class] = $config;
     }
