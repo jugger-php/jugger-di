@@ -17,7 +17,7 @@ class Container implements ArrayAccess
 
     public static function get($name)
     {
-        return self::getInstance()[$name];
+        return self::$c[$name];
     }
 
     protected $data = [];
@@ -174,4 +174,4 @@ class Container implements ArrayAccess
 /**
  * Псевдоним для контейнера
  */
-abstract class Di extends Container {}
+class Di extends Container {}
