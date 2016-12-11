@@ -96,7 +96,7 @@ class Container implements ArrayAccess
         $className = $config['class'];
         unset($config['class']);
 
-        $object = (new ReflectionClass($className))->newInstance();
+        $object = $this->createObjectFromClassName($className);
         foreach ($config as $property => $value) {
             $object->$property = $value;
         }
