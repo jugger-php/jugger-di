@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use jugger\di\Di;
 use jugger\di\Container;
+use jugger\di\ClassIsSet;
 use jugger\di\ClassAlreadyCached;
 
 class Test1 {}
@@ -97,7 +98,7 @@ class DiTest extends TestCase
             Di::$c['Test5'] = 'Test1';
         }
         catch (\Exception $e) {
-            $this->assertInstanceOf(ClassAlreadyCached::class, $e);
+            $this->assertInstanceOf(ClassIsSet::class, $e);
         }
     }
 
