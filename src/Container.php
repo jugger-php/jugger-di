@@ -144,13 +144,15 @@ class Container implements ArrayAccess
 
             $parametrClassName = $parametrClass->getName();
             $parametrValue = $this->offsetGet($parametrClassName);
-            if (is_null($parametrValue)) {
-                if ($p->isOptional()) {
-                    $parametrValue = $p->getDefaultValue();
-                }
-                else {
-                    throw new ErrorException("Not found class '{$parametrClassName}' as parametr for '{$className}'");
-                }
+
+            if ($parametrValue) {
+                // pass
+            }
+            elseif ($p->isOptional()) {
+                $parametrValue = $p->getDefaultValue();
+            }
+            else {
+                throw new ErrorException("Not found class '{$parametrClassName}' as parametr for '{$className}'");
             }
 
             $args[] = $parametrValue;
