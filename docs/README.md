@@ -109,11 +109,69 @@ Di::$c['path\to\AbstractClass'] = [
 ];
 ```
 
-В качестве конфига, также можно указать функцию `Closure`:
+Также, что логично, можно комбинировать оба варианта:
+```php
+```php
+class Test1 {}
+class Test2 {}
+class Test3
+{
+    public function __construct(Test1 $t1, Test2 $t2) { }
+}
+
+Di::$c['Test1'] = 'Test1';
+Di::$c['Test2'] = 'Test2';
+Di::$c['Test3'] = [
+    'class' => 'Test3',
+    't2' => null,
+];
+
+// $test1 = Di::$c['Test1'];
+// $test2 = Di::$c['Test2'];
+// $test3 = new Test3($test1, $test2);
+// $test3->t2 = null;
+//
+$test3 = Di::$c['Test3'];
+```
+
+Если предыдущие способы не подходят, то в качестве конфига можно указать анонимную функцию:
 ```php
 Di::$c['Test4'] = function(Container $c) {
     $obj = new Test4(1,2,3);
     $obj->prop1 = $c['Test4'];
     return $obj;
 };
+```
+
+Указывать нужно именно `Closure`, иначе ничего не сработает (если не понимаете почему, какого хера невнимательно читаете?!).
+
+## Билдеры
+
+Методы, которые занимаются созданием объектом из конфигов, доступны публично:
+```php
+$con = new Container([
+    'Test1' => 'Test1',
+    'Test2' => 'Test2',
+]);
+
+// создание по имени класса
+// (обратите внимание, что класс 'Test3', не обязательно должен присутствовать в самом контейнере)
+//
+// $test1 = Di::$c['Test1'];
+// $test2 = Di::$c['Test2'];
+// $test3 = new Test3($test1, $test2);
+//
+$test3 = $con->createObjectFromClassName('Test3');
+
+// создание по конфигу
+//
+// $test1 = Di::$c['Test1'];
+// $test2 = Di::$c['Test2'];
+// $test3 = new Test3($test1, $test2);
+// $test3->t2 = null;
+//
+$test3 = $con->createObjectFromArray([
+    'class' => 'Test3',
+    't2' => null,
+]);
 ```
