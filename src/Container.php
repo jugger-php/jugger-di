@@ -91,7 +91,7 @@ class Container implements ArrayAccess
      * @param  array  $classData конфиг для создания класса
      * @return object
      */
-    protected function createObjectFromArray(array $config)
+    public function createObjectFromArray(array $config)
     {
         $className = $config['class'];
         unset($config['class']);
@@ -121,7 +121,7 @@ class Container implements ArrayAccess
      * @param  string $className имя класса
      * @return object
      */
-    protected function createObjectFromClassName(string $className)
+    public function createObjectFromClassName(string $className)
     {
         $class = new ReflectionClass($className);
         $construct = $class->getConstructor();
