@@ -137,7 +137,7 @@ $test3 = Di::$c['Test3'];
 ```php
 Di::$c['Test4'] = function(Container $c) {
     $obj = new Test4(1,2,3);
-    $obj->prop1 = $c['Test4'];
+    $obj->prop1 = $c['Test1'];
     return $obj;
 };
 ```
