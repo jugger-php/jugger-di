@@ -54,7 +54,11 @@ class DiTest extends TestCase
      */
     public function testCreateClass()
     {
-        $test3 = Di::$c->createObjectFromClassName('Test3');
+        $con = new Container([
+            'Test1' => 'Test1',
+            'Test2' => 'Test2',
+        ]);
+        $test3 = $con->createObjectFromClassName('Test3');
 
         $this->assertInstanceOf(Test1::class, $test3->t1);
         $this->assertInstanceOf(Test2::class, $test3->t2);
@@ -65,7 +69,11 @@ class DiTest extends TestCase
      */
     public function testCreateClassFromArray()
     {
-        $test3 = Di::$c->createObjectFromArray([
+        $con = new Container([
+            'Test1' => 'Test1',
+            'Test2' => 'Test2',
+        ]);
+        $test3 = $con->createObjectFromArray([
             'class' => 'Test3',
             't2' => null,
         ]);
