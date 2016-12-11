@@ -3,47 +3,53 @@
 namespace jugger\di;
 
 use ArrayAccess;
-use Exception;
 use ErrorException;
 use ReflectionClass;
-use jugger\base\Singleton;
 
-class Container extends Singleton implements ArrayAccess
+/**
+ * Контейнер зависимостей
+ */
+class Container implements ArrayAccess
 {
-    protected $data = [];
-    protected $cache = [];
-
-    public function init(array $depencyList)
-    {
-        foreach ($depencyList as $class => $value) {
-            $this->offsetSet($class, $value);
-        }
-    }
+    /**
+     * Контейнер
+     */
+    public static $c;
 
     public static function get($name)
     {
         return self::getInstance()[$name];
     }
 
-    public function offsetExists($offset)
+    protected $data = [];
+    protected $cache = [];
+
+    public function __construct(array $depencyList)
     {
-        return isset($this->data[$offset]);
+        foreach ($depencyList as $class => $value) {
+            $this->offsetSet($class, $value);
+        }
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetExists($class)
     {
-        if (isset($this->cache[$offset])) {
-            throw new ErrorException("Class '{$offset}' is already cached");
-        }
-        $this->data[$offset] = $value;
+        return isset($this->data[$class]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetSet($class, $config)
     {
-        if (isset($this->cache[$offset])) {
-            throw new ErrorException("Class '{$offset}' is already cached");
+        if (isset($this->cache[$class])) {
+            throw new ErrorException("Class '{$class}' is already cached");
         }
-        unset($this->data[$offset]);
+        $this->data[$class] = $config;
+    }
+
+    public function offsetUnset($class)
+    {
+        if (isset($this->cache[$class])) {
+            throw new ErrorException("Class '{$class}' is already cached");
+        }
+        unset($this->data[$class]);
     }
 
     public function offsetGet($className)
@@ -56,91 +62,22 @@ class Container extends Singleton implements ArrayAccess
         }
 
         $object = null;
-        $classData = $this->data[$className];
+        $config = $this->data[$className];
 
-        if (is_callable($classData)) {
-            $object = call_user_func_array($classData, [$this]);
+        if (is_callable($config)) {
+            $object = call_user_func_array($config, [$this]);
         }
-        elseif (is_array($classData)) {
-            $object = $this->createObjectFromArray($classData);
+        elseif (is_array($config)) {
+            $object = $this->createObjectFromArray($config);
         }
-        elseif (is_string($classData)) {
-            $object = $this->createObjectFromClassName($classData);
+        elseif (is_string($config)) {
+            $object = $this->createObjectFromClassName($config);
         }
         else {
-            throw new ErrorException("Invalide parametr '{$className}' type of '". gettype($classData) ."'");
+            throw new ErrorException("Invalide parametr '{$className}', type of '". gettype($config) ."'");
         }
 
         return $this->cache[$className] = $object;
-    }
-
-    /**
-     * Создает класс который наследуется от класса из контейнера, реализующего интерфейс
-     * Например:
-     *  // пакет 'db'
-     *  namespace db {
-     *      class Query {}
-     *  }
-     *  // пакет 'ar'
-     *  namespace ar {
-     *      interface QueryInterface {}
-     *  }
-     *  // добавление класса в контейнер
-     *  $container::createInstance([
-     *      'ar\QueryInterface' => function(Container $c) {
-     *          return new class
-     *              extends db\Query
-     *              implements ar\QueryInterface {};
-     *      }
-     *  ]);
-     *  // использование
-     *  namespace ar {
-     *      // создаем класс в текущем пространстве имен 'ar\Query'
-     *      Container::getInstance()->createClass('ar\Query', 'ar\QueryInterface');
-     *      // наследуемся от него
-     *      class ActiveQuery extends Query {}
-     *  }
-     *
-     * @param  string $className
-     * @param  string $targetInterface
-     */
-    public function createClass($className, $targetInterface)
-    {
-        $targetClass = $this->offsetGet($targetInterface);
-        if ($targetClass) {
-            $targetClass = get_class($targetClass);
-        }
-        else {
-            throw new Exception("Not found class implemented interface '{$targetInterface}'");
-        }
-
-        $className = '\\'. trim($className, '\\');
-        if (class_exists($className)) {
-            return false;
-        }
-
-        $targetClass = '\\'. trim($targetClass, '\\');
-        $targetInterface = '\\'. trim($targetInterface, '\\');
-
-        $classData = explode('\\', $className);
-        $classNameShort = end($classData);
-        $namespace = array_reduce($classData, function($c, $i) use($classNameShort) {
-            if ($classNameShort == $i) {
-                return $c;
-            }
-            elseif (!$c) {
-                return $i;
-            }
-            return $c .'\\'. $i;
-        });
-
-        eval("
-        namespace {$namespace} {
-            class {$classNameShort} extends {$targetClass} implements {$targetInterface} {}
-        }
-        ");
-
-        return true;
     }
 
     /**
@@ -155,13 +92,13 @@ class Container extends Singleton implements ArrayAccess
      * @param  array  $classData конфиг для создания класса
      * @return object
      */
-    protected function createObjectFromArray(array $classData)
+    protected function createObjectFromArray(array $config)
     {
-        $className = $classData['class'];
-        unset($classData['class']);
+        $className = $config['class'];
+        unset($config['class']);
 
         $object = (new ReflectionClass($className))->newInstance();
-        foreach ($classData as $property => $value) {
+        foreach ($config as $property => $value) {
             $object->$property = $value;
         }
 
@@ -217,13 +154,21 @@ class Container extends Singleton implements ArrayAccess
             $args[] = $parametrValue;
         }
 
-        if (is_null($object) && !empty($args)) {
-            $object = $class->newInstanceArgs($args);
+        if ($object) {
+            // pass
         }
-        elseif (is_null($object)) {
+        elseif (empty($args)) {
             $object = $class->newInstance();
+        }
+        else {
+            $object = $class->newInstanceArgs($args);
         }
 
         return $object;
     }
 }
+
+/**
+ * Псевдоним для контейнера
+ */
+abstract class Di extends Container {}
