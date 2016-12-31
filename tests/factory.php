@@ -29,6 +29,6 @@ class FactoryTest extends TestCase
         Di::$f['c'] = 123;
         Di::$f['c'] = 456;
 
-        $this->assertEquals(Di::$f['c'], 123);
+        $this->assertEquals(Di::$f['c'], 456);
     }
 }
