@@ -1,6 +1,6 @@
 {
     "name": "jugger-php/jugger-di",
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "jugger\\di\\": "src/"
