@@ -9,9 +9,4 @@ abstract class Di
      * @var Container
      */
     public static $c;
-    /**
-     * Фабрика
-     * @var Factory
-     */
-    public static $f;
 }
