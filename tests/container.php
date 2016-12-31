@@ -47,6 +47,15 @@ class ContainerTest extends TestCase
     /**
      * @depends testCreate
      */
+    public function testAccess()
+    {
+        $this->assertNotEmpty(Di::$c->Test1);
+        $this->assertTrue(Di::$c->Test1 === Di::$c['Test1']);
+    }
+
+    /**
+     * @depends testCreate
+     */
     public function testCreateClass()
     {
         $con = new Container([
