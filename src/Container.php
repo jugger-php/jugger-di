@@ -48,7 +48,18 @@ class Container implements \ArrayAccess
         elseif (isset($this->cache[$className])) {
             return $this->cache[$className];
         }
+        else {
+            return $this->cache[$className] = $this->createObject($className);
+        }
+    }
 
+    /**
+     * Метод для создания объекта (имеено создания, поэтому кеш обходиться)
+     * @param  string $className    имя класса
+     * @return mixed                объект класса
+     */
+    public function createObject(string $className)
+    {
         $object = null;
         $config = $this->data[$className];
 
@@ -65,7 +76,7 @@ class Container implements \ArrayAccess
             throw new \ErrorException("Invalide config of class '{$className}', config type of '". gettype($config) ."'");
         }
 
-        return $this->cache[$className] = $object;
+        return $object;
     }
 
     /**
