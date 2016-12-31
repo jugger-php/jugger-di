@@ -2,11 +2,15 @@
 
 namespace jugger\di;
 
+use jugger\base\ArrayAccessTrait;
+
 /**
  * Контейнер зависимостей
  */
 class Container implements \ArrayAccess
 {
+    use ArrayAccessTrait;
+
     protected $data = [];
     protected $cache = [];
 
@@ -17,12 +21,12 @@ class Container implements \ArrayAccess
         }
     }
 
-    public function offsetExists($class)
+    public function __isset($class)
     {
         return isset($this->data[$class]);
     }
 
-    public function offsetSet($class, $config)
+    public function __set($class, $config)
     {
         if (isset($this->data[$class])) {
             return false;
@@ -31,7 +35,7 @@ class Container implements \ArrayAccess
         return true;
     }
 
-    public function offsetUnset($class)
+    public function __unset($class)
     {
         if (isset($this->cache[$class])) {
             return false;
@@ -40,7 +44,7 @@ class Container implements \ArrayAccess
         return true;
     }
 
-    public function offsetGet($className)
+    public function __get($className)
     {
         if (!$this->offsetExists($className)) {
             return null;
