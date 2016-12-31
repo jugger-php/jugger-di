@@ -15,9 +15,6 @@ class Factory implements \ArrayAccess
 
     public function __set(string $name, $value)
     {
-        if (isset($this->$name)) {
-            return;
-        }
         $this->vars[$name] = $value;
     }
 
