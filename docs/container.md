@@ -34,6 +34,25 @@ isset($container['c']);
 unset($container['d']);
 ```
 
+## Конструктор
+
+Конструктор контейнера принимает на вход список зависимостей, поэтому куски кода ниже идентичны:
+```php
+Di::$c = new Container([
+    'Test1' => 'Test1',
+    'Test2' => [
+        'class' => 'Test2'
+    ],
+    'Test3' => function($c) {},
+]);
+// равносильно
+Di::$c['Test1'] = 'Test1';
+Di::$c['Test2'] = [
+    'class' => 'Test2'
+];
+Di::$c['Test3'] = function($c) {};
+```
+
 ## Инициализация
 
 Каждый элемент контейнера, это *зависимость* некоего класса с другими.
@@ -109,25 +128,6 @@ Di::$c['Test2'] = 'Test2';
 $object = Di::$c['Test4'];
 // равносильно
 $object = new Test3('low', $c['Test2']);
-```
-
-## Конструктор
-
-Конструктор контейнера принимает на вход список зависимостей, поэтому куски кода ниже идентичны:
-```php
-Di::$c = new Container([
-    'Test1' => 'Test1',
-    'Test2' => [
-        'class' => 'Test2'
-    ],
-    'Test3' => function($c) {},
-]);
-// равносильно
-Di::$c['Test1'] = 'Test1';
-Di::$c['Test2'] = [
-    'class' => 'Test2'
-];
-Di::$c['Test3'] = function($c) {};
 ```
 
 ## LazyLoad & Singleton
