@@ -32,6 +32,12 @@ $a = $container['a'];
 $container['b'] = 'b';
 isset($container['c']);
 unset($container['d']);
+
+// либо как с обычным объектом
+$container->a;
+$container->b = 'b';
+isset($container->c);
+unset($container->d);
 ```
 
 ## Конструктор
@@ -128,6 +134,17 @@ Di::$c['Test2'] = 'Test2';
 $object = Di::$c['Test4'];
 // равносильно
 $object = new Test3('low', $c['Test2']);
+```
+
+## Класс или переменная?
+
+Логически, в контейнере зависимостей нужно указывать именно классы, чтобы зависимые классы завязывались именно на абстракции классов.
+Но также **можно** указывать и любые имена, например для удобства:
+
+```php
+Di::$c['\jugger\ar\QueryInterface'] = '\jugger\db\Query';
+// либо можно просто указать
+Di::$c->query = '\jugger\db\Query';
 ```
 
 ## LazyLoad & Singleton
