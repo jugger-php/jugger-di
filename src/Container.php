@@ -2,24 +2,11 @@
 
 namespace jugger\di;
 
-use ArrayAccess;
-use ReflectionClass;
-
 /**
  * Контейнер зависимостей
  */
-class Container implements ArrayAccess
+class Container implements \ArrayAccess
 {
-    /**
-     * Контейнер
-     */
-    public static $c;
-
-    public static function get($name)
-    {
-        return self::$c[$name];
-    }
-
     protected $data = [];
     protected $cache = [];
 
@@ -38,17 +25,19 @@ class Container implements ArrayAccess
     public function offsetSet($class, $config)
     {
         if (isset($this->data[$class])) {
-            throw new ClassIsSet($class);
+            return false;
         }
         $this->data[$class] = $config;
+        return true;
     }
 
     public function offsetUnset($class)
     {
         if (isset($this->cache[$class])) {
-            throw new ClassAlreadyCached($class);
+            return false;
         }
         unset($this->data[$class]);
+        return true;
     }
 
     public function offsetGet($className)
@@ -73,7 +62,7 @@ class Container implements ArrayAccess
             $object = $this->createObjectFromClassName($config);
         }
         else {
-            throw new ErrorException("Invalide parametr '{$className}', type of '". gettype($config) ."'");
+            throw new \ErrorException("Invalide config of class '{$className}', config type of '". gettype($config) ."'");
         }
 
         return $this->cache[$className] = $object;
@@ -123,7 +112,7 @@ class Container implements ArrayAccess
      */
     public function createObjectFromClassName(string $className)
     {
-        $class = new ReflectionClass($className);
+        $class = new \ReflectionClass($className);
         $construct = $class->getConstructor();
         if ($construct) {
             $constructParams = $construct->getParameters();
@@ -150,9 +139,6 @@ class Container implements ArrayAccess
             elseif ($p->isOptional()) {
                 $parametrValue = $p->getDefaultValue();
             }
-            else {
-                throw new NotFoundClass("parametr class: '{$parametrClassName}', class: '{$className}'");
-            }
 
             $args[] = $parametrValue;
         }
@@ -170,8 +156,3 @@ class Container implements ArrayAccess
         return $object;
     }
 }
-
-/**
- * Псевдоним для контейнера
- */
-class Di extends Container {}
