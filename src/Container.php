@@ -14,47 +14,50 @@ class Container implements \ArrayAccess
     protected $data = [];
     protected $cache = [];
 
-    public function __construct(array $depencyList)
+    public function __construct(array $depencyList = [])
     {
         foreach ($depencyList as $class => $value) {
-            $this->offsetSet($class, $value);
+            $this->$class = $value;
         }
     }
 
-    public function __isset($class)
+    public function __set($name, $config)
     {
-        return isset($this->data[$class]);
-    }
-
-    public function __set($class, $config)
-    {
-        if (isset($this->data[$class])) {
-            return false;
+        if (isset($this->data[$name])) {
+            throw new \ErrorException("Object '{$name}' already exists");
         }
-        $this->data[$class] = $config;
-        return true;
+        $this->data[$name] = $config;
     }
 
-    public function __unset($class)
+    public function __get($name)
     {
-        if (isset($this->cache[$class])) {
-            return false;
+        if (isset($this->cache[$name])) {
+            return $this->cache[$name];
         }
-        unset($this->data[$class]);
-        return true;
-    }
 
-    public function __get($className)
-    {
-        if (!$this->offsetExists($className)) {
+        $callback = $this->data[$name] ?? null;
+        if (is_null($callback)) {
             return null;
         }
-        elseif (isset($this->cache[$className])) {
-            return $this->cache[$className];
+        elseif ($callback instanceof \Closure) {
+            return ($callback)($this);
         }
         else {
-            return $this->cache[$className] = $this->createObject($className);
+            return $this->cache[$name] = $this->create($name);
         }
+    }
+
+    public function __isset($name)
+    {
+        return isset($this->data[$name]);
+    }
+
+    public function __unset($name)
+    {
+        if (isset($this->cache[$name])) {
+            throw new \ErrorException("Object '{$name}' already cached");
+        }
+        unset($this->data[$name]);
     }
 
     /**
@@ -62,19 +65,16 @@ class Container implements \ArrayAccess
      * @param  string $className    имя класса
      * @return mixed                объект класса
      */
-    public function createObject(string $className)
+    public function create(string $className)
     {
         $object = null;
         $config = $this->data[$className];
 
-        if (is_callable($config)) {
-            $object = call_user_func_array($config, [$this]);
-        }
-        elseif (is_array($config)) {
-            $object = $this->createObjectFromArray($config);
+        if (is_array($config)) {
+            $object = $this->createFromArray($config);
         }
         elseif (is_string($config)) {
-            $object = $this->createObjectFromClassName($config);
+            $object = $this->createFromClassName($config);
         }
         else {
             throw new \ErrorException("Invalide config of class '{$className}', config type of '". gettype($config) ."'");
@@ -95,12 +95,12 @@ class Container implements \ArrayAccess
      * @param  array  $classData конфиг для создания класса
      * @return object
      */
-    public function createObjectFromArray(array $config)
+    public function createFromArray(array $config)
     {
         $className = $config['class'];
         unset($config['class']);
 
-        $object = $this->createObjectFromClassName($className);
+        $object = $this->createFromClassName($className);
         foreach ($config as $property => $value) {
             $object->$property = $value;
         }
@@ -125,7 +125,7 @@ class Container implements \ArrayAccess
      * @param  string $className имя класса
      * @return object
      */
-    public function createObjectFromClassName(string $className)
+    public function createFromClassName(string $className)
     {
         $class = new \ReflectionClass($className);
         $construct = $class->getConstructor();
@@ -146,7 +146,7 @@ class Container implements \ArrayAccess
             }
 
             $parametrClassName = $parametrClass->getName();
-            $parametrValue = $this->offsetGet($parametrClassName);
+            $parametrValue = $this->$parametrClassName;
 
             if ($parametrValue) {
                 // pass
