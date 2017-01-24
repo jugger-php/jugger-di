@@ -28,6 +28,30 @@ class Test3
     }
 }
 
+class Test8
+{
+    var $t1;
+    var $p1;
+
+    public function __construct(Test1 $t1, $p1 = 'test')
+    {
+        $this->t1 = $t1;
+        $this->p1 = $p1;
+    }
+}
+
+class Test9
+{
+    var $p1;
+    var $p2;
+
+    public function __construct($p1, $p2)
+    {
+        $this->p1 = $p1;
+        $this->p2 = $p2;
+    }
+}
+
 class ContainerTest extends TestCase
 {
     public function testCreate()
@@ -65,10 +89,21 @@ class ContainerTest extends TestCase
             'Test1' => 'Test1',
             'Test2' => 'Test2',
         ]);
-        $test3 = $con->createFromClassName('Test3');
 
+        // test depends parametrs
+        $test3 = $con->createFromClassName('Test3');
         $this->assertInstanceOf(Test1::class, $test3->t1);
         $this->assertInstanceOf(Test2::class, $test3->t2);
+
+        // test depends/options parametrs
+        $test8 = $con->createFromClassName('Test8');
+        $this->assertEquals($test8->p1, 'test');
+        $this->assertInstanceOf(Test1::class, $test8->t1);
+
+        // test options parametrs
+        $test9 = $con->createFromClassName('Test9');
+        $this->assertNull($test9->p1);
+        $this->assertNull($test9->p2);
     }
 
     /**
