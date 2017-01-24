@@ -3,6 +3,9 @@
 use PHPUnit\Framework\TestCase;
 use jugger\di\Di;
 use jugger\di\Container;
+use jugger\db\Query;
+use jugger\db\Command;
+use jugger\db\driver\MysqliConnection;
 
 class Test1 {}
 
@@ -62,7 +65,7 @@ class ContainerTest extends TestCase
             'Test1' => 'Test1',
             'Test2' => 'Test2',
         ]);
-        $test3 = $con->createObjectFromClassName('Test3');
+        $test3 = $con->createFromClassName('Test3');
 
         $this->assertInstanceOf(Test1::class, $test3->t1);
         $this->assertInstanceOf(Test2::class, $test3->t2);
@@ -77,7 +80,7 @@ class ContainerTest extends TestCase
             'Test1' => 'Test1',
             'Test2' => 'Test2',
         ]);
-        $test3 = $con->createObjectFromArray([
+        $test3 = $con->createFromArray([
             'class' => 'Test3',
             't2' => null,
         ]);
@@ -121,9 +124,10 @@ class ContainerTest extends TestCase
         try {
             Di::$c['Test5'] = 'Test1';
         }
-        catch (\Exception $e) {
-            $this->assertInstanceOf(ClassIsSet::class, $e);
+        catch (\ErrorException $e) {
+            return;
         }
+        $this->assertTrue(false);
     }
 
     /**
@@ -131,31 +135,60 @@ class ContainerTest extends TestCase
      */
     public function testUnset()
     {
-        Di::$c['Test6'] = 'Test1';
         Di::$c['Test7'] = 'Test1';
-
-        // not unset cached data
-        $t6 = Di::$c['Test6'];
-        unset(Di::$c['Test6']);
-        $this->assertTrue($t6 === Di::$c['Test6']);
-
-        // ok
         unset(Di::$c['Test7']);
+        $this->assertNull(Di::$c['Test7']);
     }
 
     /**
-     * @depends testGet
+     * @depends testUnset
+     */
+    public function testUnsetException()
+    {
+        $this->expectException(\ErrorException::class);
+
+        Di::$c['Test6'] = 'Test1';
+        $class = Di::$c['Test6'];
+        unset(Di::$c['Test6']);
+    }
+
+    /**
+     * @depends testUnsetException
      */
     public function testCache()
     {
         $t1 = Di::$c['Test1'];
-        $t2 = Di::$c->createObject('Test1');
+        $t2 = Di::$c->create('Test1');
         $t3 = Di::$c['Test1'];
-        $t4 = Di::$c->createObject('Test1');
+        $t4 = Di::$c->create('Test1');
 
         $this->assertTrue($t1 !== $t2);
         $this->assertTrue($t1 === $t3);
         $this->assertTrue($t1 !== $t4);
         $this->assertTrue($t2 !== $t4);
+    }
+
+    /**
+     * @depends testCache
+     */
+    public function testFactory()
+    {
+        Di::$c->db = function($c) {
+            return new MysqliConnection();
+        };
+        Di::$c->query = function($c) {
+            return new Query($c->db);
+        };
+        Di::$c->command = function($c) {
+            return new Command($c->db);
+        };
+
+        $q1 = Di::$c->query;
+        $q2 = Di::$c->query;
+
+        $this->assertTrue($q1 !== $q2);
+        $this->assertInstanceOf(Query::class, Di::$c->query);
+        $this->assertInstanceOf(Command::class, Di::$c->command);
+        $this->assertInstanceOf(MysqliConnection::class, Di::$c->db);
     }
 }
