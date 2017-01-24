@@ -140,19 +140,15 @@ class Container implements \ArrayAccess
         $object = null;
         foreach ($constructParams as $p) {
             $parametrClass = $p->getClass();
-            if ($parametrClass === null) {
-                $object = $class->newInstance();
-                break;
-            }
-
-            $parametrClassName = $parametrClass->getName();
-            $parametrValue = $this->$parametrClassName;
-
-            if ($parametrValue) {
-                // pass
+            if ($parametrClass) {
+                $parametrClassName = $parametrClass->getName();
+                $parametrValue = $this->$parametrClassName;
             }
             elseif ($p->isOptional()) {
                 $parametrValue = $p->getDefaultValue();
+            }
+            else {
+                $parametrValue = null;
             }
 
             $args[] = $parametrValue;
